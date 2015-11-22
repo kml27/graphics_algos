@@ -4,6 +4,8 @@ os.environ["PYSDL2_DLL_PATH"]="."
 import sdl2, sdl2.ext#, sdl2.color
 import math, random
 
+#window_size=(1920,1080)
+window_size=(800,600)
 txtr=1
 
 #fit to old code
@@ -11,7 +13,7 @@ class rectangle(object):
     def __init__(self, x1, y1, x2, y2):
         self.bottom=y2
         self.right=x2
-window_size=(800,600)
+
 rect=rectangle(0,0,window_size[0],window_size[1])
 
 #new sdl2 implementation in python
@@ -125,20 +127,20 @@ def generate7(center, width, renderer):
             renderer.draw_line((int(center-x1/8), int(y1/8+rect.bottom/2), int(center+x2/8), int(y2/8+rect.bottom/2)), 0xA0FFffff&0xFF<<y%32)
 
 def generate8(center, width, renderer):
-        for y in range(-rect.bottom/20, rect.bottom/20):
+        for y in range(int(-rect.bottom/20), int(rect.bottom/20)):
             x1=width*math.cos(y*.1) - y*math.sin(y*.1);
             y1=width*math.sin(y*.1) + y*math.cos(y*.1);
             x2=width*math.cos(-y*.1)- y*math.sin(-y*.1);
             y2=width*math.sin(-y*.1)+ y*math.cos(-y*.1);
-            renderer.draw_line((center+x1, y1+rect.bottom/2, x2+width, y2+rect.bottom/2), 0x00ffffff)
+            renderer.draw_line((int(center+x1), int(y1+rect.bottom/2), int(x2+width), int(y2+rect.bottom/2)), 0x00ffffff)
 
 def generate9(center, width, renderer):
-        for y in range(-rect.bottom/2, rect.bottom/2):
+        for y in range(int(-rect.bottom/2), int(rect.bottom/2)):
             x1=width*math.cos(y*.01) - y*math.sin(y*.01);
             y1=width*math.sin(y*.01) + y*math.cos(y*.01);
             x2=width*math.cos(-y*.01)- y*math.sin(-y*.01);
             y2=width*math.sin(-y*.01)+ y*math.cos(-y*.01);
-            renderer.draw_line((center-x1, y1+rect.bottom/2, center+x2, y2+rect.bottom/2), 0x00ffffff)
+            renderer.draw_line((int(center-x1), int(y1+rect.bottom/2), int(center+x2), int(y2+rect.bottom/2)), 0x00ffffff)
 
 def run():
     sdl2.ext.init()
@@ -160,7 +162,9 @@ def run():
     window.show()
 
 #    world.add_system(movement)
-    
+    target_off=0.0
+    current_off = 0.0
+    step=0.005
     running=True
     while running:
         events = sdl2.ext.get_events()
@@ -172,14 +176,22 @@ def run():
             if event.type==sdl2.SDL_QUIT or (event.type==sdl2.SDL_KEYDOWN and event.key.keysym.sym==sdl2.SDLK_ESCAPE):
                 running = False
                 break
-        #sdl2.SDL_Delay(33)
+        sdl2.SDL_Delay(27)
         #world.process()
-
+                
         renderer.clear()
-
-        #generate7(rect.right/2, rect.right/10, renderer)
+        if math.fabs(target_off-current_off) <= step:
+                target_off=random.random()
+                print(str(target_off))
+        if current_off < target_off:
+                current_off += step
+        elif current_off > target_off:
+                 current_off -= step
+        
+       #generate7(rect.right/2, rect.right/10, renderer)
         #+random.random()*155
-        generate5((rect.right/2)+random.random()*155, rect.right/10+random.random()*155, renderer)
+        print(str(current_off))
+        generate8((rect.right/2+rect.right/8)+current_off*60, rect.right/10+150, renderer)
 
         
         renderer.present()
