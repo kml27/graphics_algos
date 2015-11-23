@@ -8,6 +8,7 @@ import math, random
 window_size=(800,600)
 txtr=1
 
+
 #fit to old code
 class rectangle(object):
     def __init__(self, x1, y1, x2, y2):
@@ -50,9 +51,7 @@ TABLESIZE=256 #we can take advantage of variable roll over here
 #    rotation.append(math.sin(i*((TABLESIZE/2)/3.14))
 #    #calculate screen coords from width based on stepsizes from center
 
-new_i=0
-new_theta=0.001
-def generate_new(center, width, renderer):
+def generate_new(center, width, renderer, i_new, alpha=0):
 
        #drawbits=(char *)ddsd.lpSurface;
 
@@ -70,11 +69,12 @@ def generate_new(center, width, renderer):
             x2=width*math.cos(y*new_theta-new_i) - y*math.sin(y*new_theta-new_i);
             y2=width*math.sin(y*new_theta) + y*math.cos(y*new_theta);
 
-        renderer.draw_line((center-x1, y1+rect.bottom/2, center+x2, y2+rect.bottom/2), 0x00ffffff)
+        
+        renderer.draw_line((center-x1, y1+rect.bottom/2, center+x2, y2+rect.bottom/2), 0x00ffffff+(int(0xFF*alpha)<<24))
 
-i_2=0.000001
-def generate2(center, width, renderer):
-        i_2=0.000001
+
+def generate2(center, width, renderer, i_2, alpha=0):
+        #i_2=0.000001
 
         #drawbits=(char *)ddsd.lpSurface;
         #memset(drawbits, 0, ddsd.lPitch*rect.bottom);
@@ -84,39 +84,41 @@ def generate2(center, width, renderer):
         #draw line with midpoint on center x and y+rotation, y+rotation[tablesize/2] is half period
             ypi=i_2+y*3.14;
             i_2+=.000003;
-            renderer.draw_line((int((rect.bottom/2)+x1/6*math.cos(ypi+i) - y/6*math.sin(ypi+i)), int( (rect.right/2)+x1/6*math.sin(ypi+i)+y/6*math.cos(ypi+i)), int( (rect.bottom/2)+x2/6*math.cos(y+i)- y/6*math.sin(y+i)), int((rect.right/2)+x2/6*math.sin(y)+y/6*math.cos(y))), 0xA0ffffff&0xff<<y%32)
-i=0.000001
-def generate(center, width, renderer):
-        i=0.000001
+            renderer.draw_line((int((rect.bottom/2)+x1/6*math.cos(ypi+i) - y/6*math.sin(ypi+i)), int( (rect.right/2)+x1/6*math.sin(ypi+i)+y/6*math.cos(ypi+i)), int( (rect.bottom/2)+x2/6*math.cos(y+i)- y/6*math.sin(y+i)), int((rect.right/2)+x2/6*math.sin(y)+y/6*math.cos(y))), (0xA0ffffff&0xff<<y%32) +( int(0xFF*alpha)<<24))
+def generate(center, width, renderer, i, alpha=0):
+        #i=0.000001
         x1=center-width/2
         x2=center+width/2
         for y in range(int(-rect.bottom//2), int( rect.bottom//2)):
             i+=0.00003;
-            renderer.draw_line((int((rect.bottom/2-width/2)+x1/4*math.cos(y+i) - y/2*math.sin(y+i)), int( (rect.right/2-width/2)+x1/4*math.sin(y+i)+y/4*math.cos(y+i)), int((rect.bottom/2+width/2)+x2/4*math.cos(-y-i)- y/4*math.sin(-y-i)), int((rect.right/2+width/2)+x2/4*math.sin(-y-i)+y/4*math.cos(-y-i))), y*0xff)
+            renderer.draw_line((int((rect.bottom/2-width/2)+x1/4*math.cos(y+i) - y/2*math.sin(y+i)), int( (rect.right/2-width/2)+x1/4*math.sin(y+i)+y/4*math.cos(y+i)), int((rect.bottom/2+width/2)+x2/4*math.cos(-y-i)- y/4*math.sin(-y-i)), int((rect.right/2+width/2)+x2/4*math.sin(-y-i)+y/4*math.cos(-y-i))), y*0xff+(int(0xFF*alpha)<<24))
 
-def generate4(center, width, renderer):
+def generate4(center, width, renderer, i, alpha=0):
         x1=center-width/2
         x2=center+width/2
         for y in range(0, rect.bottom):
-            renderer.draw_line((int(x1*math.sin(y)+y*math.cos(y)), int(x1*math.cos(y) - y*math.sin(y)), int(x2*math.cos(-y)- y*math.sin(-y)), int(x2*math.sin(-y)+y*math.cos(-y))), 0x00ffffff)
+            renderer.draw_line((int(x1*math.sin(y)+y*math.cos(y)), int(x1*math.cos(y) - y*math.sin(y)), int(x2*math.cos(-y)- y*math.sin(-y)), int(x2*math.sin(-y)+y*math.cos(-y))), 0x00ffffff+(int(0xff*alpha)<<24))
 
-def generate5(center, width, renderer):
+def generate5(center, width, renderer, i, alpha=0):
+        #print(alpha)
+        color = 0x00ffffff+(int(0xFF*alpha)<<24)
+        #print("{0:x}".format( color))
         x1=center-width/2
         x2=center+width/2
         for y in range(0, rect.bottom):
-            renderer.draw_line((int(x1*math.sin(y)+y*math.cos(y)), int(x1*math.cos(y) - y*math.sin(y)), int(x2*math.sin(-y)+y*math.cos(-y)), int(x2*math.cos(-y)- y*math.sin(-y))), 0x00ffffff)
+            renderer.draw_line((int(x1*math.sin(y)+y*math.cos(y)), int(x1*math.cos(y) - y*math.sin(y)), int(x2*math.sin(-y)+y*math.cos(-y)), int(x2*math.cos(-y)- y*math.sin(-y))), color)
 
-def generate6(center, width, renderer):
+def generate6(center, width, renderer, i, alpha=0):
         x1=center-width
         x2=center+width/2
         for y in range(0, rect.bottom):
-            renderer.draw_line((int(x1+((width/2)*math.sin(y)+y*math.cos(y))), int(x1+((width/2)*math.cos(y) - y*math.sin(y))), int(x2+(-width/2*math.cos(-y)- y*math.sin(-y))), int(x2+((-width/2)*math.sin(-y)+y*math.cos(-y)))), 0x00ffffff)
+            renderer.draw_line((int(x1+((width/2)*math.sin(y)+y*math.cos(y))), int(x1+((width/2)*math.cos(y) - y*math.sin(y))), int(x2+(-width/2*math.cos(-y)- y*math.sin(-y))), int(x2+((-width/2)*math.sin(-y)+y*math.cos(-y)))), 0x00ffffff+(int(0xFF*alpha)<<24))
 
 
 i_7=0.000001
-def generate7(center, width, renderer):
+def generate7(center, width, renderer, i_7, alpha=0):
         #the number of loops and the size of the divisor for x1,y1 in line algo are inversly proportional f(x)??? 
-        i_7=0.000001
+        #i_7=0.000001
         for y in range(-4000, 4000):
             i_7+=0.000000006;
             
@@ -124,23 +126,23 @@ def generate7(center, width, renderer):
             y1=width*math.sin(y*i) + y*math.cos(y*i);
             x2=width*math.cos(-y*i)- y*math.sin(-y*i);
             y2=width*math.sin(-y*i)+ y*math.cos(-y*i);
-            renderer.draw_line((int(center-x1/8), int(y1/8+rect.bottom/2), int(center+x2/8), int(y2/8+rect.bottom/2)), 0xA0FFffff&0xFF<<y%32)
+            renderer.draw_line((int(center-x1/8), int(y1/8+rect.bottom/2), int(center+x2/8), int(y2/8+rect.bottom/2)), 0xA0FFffff&0xFF<<y%32+(int(0xFF*alpha)<<24))
 
-def generate8(center, width, renderer):
+def generate8(center, width, renderer, i, alpha=0):
         for y in range(int(-rect.bottom/20), int(rect.bottom/20)):
             x1=width*math.cos(y*.1) - y*math.sin(y*.1);
             y1=width*math.sin(y*.1) + y*math.cos(y*.1);
             x2=width*math.cos(-y*.1)- y*math.sin(-y*.1);
             y2=width*math.sin(-y*.1)+ y*math.cos(-y*.1);
-            renderer.draw_line((int(center+x1), int(y1+rect.bottom/2), int(x2+width), int(y2+rect.bottom/2)), 0x00ffffff)
+            renderer.draw_line((int(center+x1), int(y1+rect.bottom/2), int(x2+width), int(y2+rect.bottom/2)), 0x00ffffff+(int(0xFF*alpha)<<24))
 
-def generate9(center, width, renderer):
+def generate9(center, width, renderer, i, alpha=0):
         for y in range(int(-rect.bottom/2), int(rect.bottom/2)):
             x1=width*math.cos(y*.01) - y*math.sin(y*.01);
             y1=width*math.sin(y*.01) + y*math.cos(y*.01);
             x2=width*math.cos(-y*.01)- y*math.sin(-y*.01);
             y2=width*math.sin(-y*.01)+ y*math.cos(-y*.01);
-            renderer.draw_line((int(center-x1), int(y1+rect.bottom/2), int(center+x2), int(y2+rect.bottom/2)), 0x00ffffff)
+            renderer.draw_line((int(center-x1), int(y1+rect.bottom/2), int(center+x2), int(y2+rect.bottom/2)), 0x00ffffff+(int(0xFF*alpha)<<24))
 
 def run():
     sdl2.ext.init()
@@ -148,7 +150,7 @@ def run():
     world = sdl2.ext.World()
     
     renderer = sdl2.ext.Renderer(window)
-    renderer.blendmode = sdl2.SDL_BLENDMODE_NONE
+    renderer.blendmode = sdl2.SDL_BLENDMODE_BLEND
     if txtr == 1:
         sprite_factory = sdl2.ext.SpriteFactory(renderer=renderer)
     else:
@@ -161,11 +163,31 @@ def run():
     
     window.show()
 
+    i=0.000001
+
 #    world.add_system(movement)
     target_off=0.0
     current_off = 0.0
     step=0.005
     running=True
+    gen_fns = [generate8, generate,
+        #generate2,
+        generate4,
+        generate5,
+        generate6,
+        #generate7,
+        generate9]#,
+        #generate_new]
+    fn=0
+    
+    x_off =0
+    x_off_target=random.random()
+    new_i=0
+    new_theta=0.001
+
+    
+
+    i_2=0.000001
     while running:
         events = sdl2.ext.get_events()
         #for i in range(0, 300):
@@ -180,19 +202,37 @@ def run():
         #world.process()
                 
         renderer.clear()
-        if math.fabs(target_off-current_off) <= step:
+        if math.fabs(target_off-current_off) < step:
                 target_off=random.random()
-                print(str(target_off))
+                #print(str(target_off))
         if current_off < target_off:
                 current_off += step
         elif current_off > target_off:
                  current_off -= step
         
+        if math.fabs(x_off_target-x_off) < step:
+            x_off_target = random.random()
+        
+        if x_off < x_off_target:
+            x_off+=step
+        elif x_off > x_off_target:
+            x_off-=step
        #generate7(rect.right/2, rect.right/10, renderer)
         #+random.random()*155
-        print(str(current_off))
-        generate8((rect.right/2+rect.right/8)+current_off*60, rect.right/10+150, renderer)
-
+        #print(str(current_off))
+        
+        
+        fn+=step
+        alpha = 1.0-current_off
+        
+        gen_fn = gen_fns[int(fn)%(len(gen_fns)-1)]
+        gen_fn_to = gen_fns[int(fn)%(len(gen_fns)-1)]
+        
+        #print(gen_fn)
+        #print(gen_fn_to)
+        gen_fn((rect.right/2+rect.right/8)+current_off*160, rect.right/10+150, renderer, i, alpha)
+        #gen_fn_to((rect.right/2+rect.right/8)+current_off*60, rect.right/10+150+(x_off*100)+(random.random()*0), renderer, i, 1.0-alpha)
+        
         
         renderer.present()
         
