@@ -3,9 +3,9 @@ os.environ["PYSDL2_DLL_PATH"]='.'
 import sdl2, sdl2.ext
 
 txtr=1
-#window_size=(800,600)
-window_size=(1920,1080)
-sprite_scale=1
+window_size=(800,600)
+#window_size=(1920,1080)
+sprite_scale=3
 quickness = 2
 
 percentage=0.5
@@ -69,6 +69,7 @@ def run():
     
     renderer = sdl2.ext.Renderer(window)
     renderer.blendmode = sdl2.SDL_BLENDMODE_BLEND
+    
     if txtr == 1:
         sprite_factory = sdl2.ext.SpriteFactory(renderer=renderer)
     else:
@@ -78,11 +79,9 @@ def run():
 
     print("created sprite render system "  + str(type(sprite_render_system)))
 
-    
     movement = move(0,0,window_size[0], window_size[1])
     
     rands = []#([],[],[])
-    
     
     
     for i in range(0, (window_size[1]/2)*3):
@@ -110,6 +109,9 @@ def run():
     #print(rands)
     
     window.show()
+    #under linux SDL 1.2.15 17.fc22 (fedora) there was garbage in the window, adding clear
+    #after window.show() resolves that issue
+    renderer.clear()
     #divide in half whatever the desired percentage of the screen is (0.5 becomes 0.25, 0.8 would be 0.4)
     #for i in range(0,int(window_size[1]*percentage//2.0)):
     #    renderer.draw_line((0, (window_size[1]/2)-i-2, window_size[0], (window_size[1]/2)-i-2), (0xff0000FF))
