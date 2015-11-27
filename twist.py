@@ -1,11 +1,11 @@
 from __future__ import division
-import os,sys
+import os,sys,translation
 os.environ["PYSDL2_DLL_PATH"]="."
 import sdl2, sdl2.ext#, sdl2.color
 import math, random
 
-#window_size=(1920,1080)
-window_size=(800,600)
+window_size=(1920,1080)
+#window_size=(800,600)
 txtr=1
 
 
@@ -51,7 +51,7 @@ TABLESIZE=256 #we can take advantage of variable roll over here
 #    rotation.append(math.sin(i*((TABLESIZE/2)/3.14))
 #    #calculate screen coords from width based on stepsizes from center
 
-def generate_new(center, width, renderer, i_new, alpha=0):
+def generate_new(center, width, renderer, alpha=0):
 
        #drawbits=(char *)ddsd.lpSurface;
 
@@ -61,19 +61,18 @@ def generate_new(center, width, renderer, i_new, alpha=0):
         for y in range(-rect.bottom/2, rect.bottom/2):#offset y, one line per scanline in resolution (higher resolution, more intracate)
         #draw line with midpoint on center x and y+rotation, y+rotation[tablesize/2] is half period
         #unsigned ypi=y*3.14;
-            new_i+=.01
+            generate_new.i+=.01
         #static float theta=0.001;
         
-            x1=width*math.cos(y*new_theta+new_i) - y*math.sin(y*new_theta+new_i);
+            x1=width*math.cos(y*new_theta+generate_new.i) - y*math.sin(y*new_theta+generate_new.i);
             y1=width*math.sin(y*new_theta) + y*math.cos(y*new_theta);
-            x2=width*math.cos(y*new_theta-new_i) - y*math.sin(y*new_theta-new_i);
+            x2=width*math.cos(y*new_theta-generate_new.i) - y*math.sin(y*new_theta-generate_new.i);
             y2=width*math.sin(y*new_theta) + y*math.cos(y*new_theta);
-
         
         renderer.draw_line((center-x1, y1+rect.bottom/2, center+x2, y2+rect.bottom/2), 0x00ffffff+(int(0xFF*alpha)<<24))
+generate_new.i=0
 
-
-def generate2(center, width, renderer, i_2, alpha=0):
+def generate2(center, width, renderer, alpha=0):
         #i_2=0.000001
 
         #drawbits=(char *)ddsd.lpSurface;
@@ -82,61 +81,82 @@ def generate2(center, width, renderer, i_2, alpha=0):
         x2=center+width
         for y in range(-3000, 3000):	#do a y for every line
         #draw line with midpoint on center x and y+rotation, y+rotation[tablesize/2] is half period
-            ypi=i_2+y*3.14;
-            i_2+=.000003;
-            renderer.draw_line((int((rect.bottom/2)+x1/6*math.cos(ypi+i) - y/6*math.sin(ypi+i)), int( (rect.right/2)+x1/6*math.sin(ypi+i)+y/6*math.cos(ypi+i)), int( (rect.bottom/2)+x2/6*math.cos(y+i)- y/6*math.sin(y+i)), int((rect.right/2)+x2/6*math.sin(y)+y/6*math.cos(y))), (0xA0ffffff&0xff<<y%32) +( int(0xFF*alpha)<<24))
-def generate(center, width, renderer, i, alpha=0):
+            ypi=generate2.i+y*3.14
+            generate2.i+=.000003
+            
+            p1=translation.translate((rect.bottom/2+x1/6*math.cos(ypi+generate2.i) - y/6*math.sin(ypi+generate2.i),
+            rect.right/2+x1/6*math.sin(ypi+generate2.i)+y/6*math.cos(ypi+generate2.i)), (200, -200))
+            
+            p2=translation.translate( (rect.bottom/2+x2/6*math.cos(y+generate2.i)- y/6*math.sin(y+generate2.i),
+            rect.right/2+x2/6*math.sin(y)+y/6*math.cos(y)),(200, -200))
+            
+            renderer.draw_line((p1[0], p1[1], p2[0], p2[1]), (0x00ffffff&0xff<<y%32) +( int(0xFF*alpha)<<24))
+generate2.i=0.000001
+
+def generate(center, width, renderer, alpha=1):
         #i=0.000001
         x1=center-width/2
         x2=center+width/2
         for y in range(int(-rect.bottom//2), int( rect.bottom//2)):
-            i+=0.00003;
-            renderer.draw_line((int((rect.bottom/2-width/2)+x1/4*math.cos(y+i) - y/2*math.sin(y+i)), int( (rect.right/2-width/2)+x1/4*math.sin(y+i)+y/4*math.cos(y+i)), int((rect.bottom/2+width/2)+x2/4*math.cos(-y-i)- y/4*math.sin(-y-i)), int((rect.right/2+width/2)+x2/4*math.sin(-y-i)+y/4*math.cos(-y-i))), y*0xff+(int(0xFF*alpha)<<24))
+            generate.i+=0.00003;
+            p1 = translation.translate((rect.bottom/2-width/2+x1/4*math.cos(y+generate.i) - y/2*math.sin(y+generate.i), rect.right/2-width/2+x1/4*math.sin(y+generate.i)+y/4*math.cos(y+generate.i)), (window_size[0]/4, -window_size[1]/2))
+            p2 = translation.translate((rect.bottom/2+width/2+x2/4*math.cos(-y-generate.i)- y/4*math.sin(-y-generate.i), rect.right/2+width/2+x2/4*math.sin(-y-generate.i)+y/4*math.cos(-y-generate.i)),(window_size[0]/4,-window_size[1]/2))
+            #print(y/rect.bottom*0xff+0x80)
+            #color = y*0xff+int(0x80+y/rect.bottom*0xFF)<<24
+            
+            color = y*0xff+(int(alpha*0xff)<<24)
+            #print(color)
+            renderer.draw_line((p1[0],p1[1],p2[0],p2[1]), color)
+generate.i=0.000001
 
-def generate4(center, width, renderer, i, alpha=0):
+def generate4(center, width, renderer, alpha=0):
         x1=center-width/2
         x2=center+width/2
         for y in range(0, rect.bottom):
             renderer.draw_line((int(x1*math.sin(y)+y*math.cos(y)), int(x1*math.cos(y) - y*math.sin(y)), int(x2*math.cos(-y)- y*math.sin(-y)), int(x2*math.sin(-y)+y*math.cos(-y))), 0x00ffffff+(int(0xff*alpha)<<24))
+generate4.i=0
 
-def generate5(center, width, renderer, i, alpha=0):
+def generate5(center, width, renderer, alpha=0):
         #print(alpha)
         color = 0x00ffffff+(int(0xFF*alpha)<<24)
-        #print("{0:x}".format( color))
+        #print("{:0x}".format( color))
         x1=center-width/2
         x2=center+width/2
         for y in range(0, rect.bottom):
-            renderer.draw_line((int(x1*math.sin(y)+y*math.cos(y)), int(x1*math.cos(y) - y*math.sin(y)), int(x2*math.sin(-y)+y*math.cos(-y)), int(x2*math.cos(-y)- y*math.sin(-y))), color)
+            p1 = translation.translate((x1*math.sin(y)+y*math.cos(y), x1*math.cos(y) - y*math.sin(y)), (0, 0))
+            p2 = translation.translate((x2*math.sin(-y)+y*math.cos(-y), x2*math.cos(-y)- y*math.sin(-y)), (0, 0))
+            renderer.draw_line((p1[0], p1[1], p2[0], p2[1]), color)
 
-def generate6(center, width, renderer, i, alpha=0):
+def generate6(center, width, renderer, alpha=0):
         x1=center-width
         x2=center+width/2
         for y in range(0, rect.bottom):
             renderer.draw_line((int(x1+((width/2)*math.sin(y)+y*math.cos(y))), int(x1+((width/2)*math.cos(y) - y*math.sin(y))), int(x2+(-width/2*math.cos(-y)- y*math.sin(-y))), int(x2+((-width/2)*math.sin(-y)+y*math.cos(-y)))), 0x00ffffff+(int(0xFF*alpha)<<24))
 
 
-i_7=0.000001
-def generate7(center, width, renderer, i_7, alpha=0):
+def generate7(center, width, renderer, alpha=0):
         #the number of loops and the size of the divisor for x1,y1 in line algo are inversly proportional f(x)??? 
         #i_7=0.000001
         for y in range(-4000, 4000):
-            i_7+=0.000000006;
+            generate7.i+=0.000000006;
             
             x1=width*math.cos(y*i) - y*math.sin(y*i);
             y1=width*math.sin(y*i) + y*math.cos(y*i);
             x2=width*math.cos(-y*i)- y*math.sin(-y*i);
             y2=width*math.sin(-y*i)+ y*math.cos(-y*i);
             renderer.draw_line((int(center-x1/8), int(y1/8+rect.bottom/2), int(center+x2/8), int(y2/8+rect.bottom/2)), 0xA0FFffff&0xFF<<y%32+(int(0xFF*alpha)<<24))
+generate7.i=i_7=0.000001
 
-def generate8(center, width, renderer, i, alpha=0):
+def generate8(center, width, renderer, alpha=0):
         for y in range(int(-rect.bottom/20), int(rect.bottom/20)):
             x1=width*math.cos(y*.1) - y*math.sin(y*.1);
             y1=width*math.sin(y*.1) + y*math.cos(y*.1);
             x2=width*math.cos(-y*.1)- y*math.sin(-y*.1);
             y2=width*math.sin(-y*.1)+ y*math.cos(-y*.1);
+            #print(alpha)
             renderer.draw_line((int(center+x1), int(y1+rect.bottom/2), int(x2+width), int(y2+rect.bottom/2)), 0x00ffffff+(int(0xFF*alpha)<<24))
 
-def generate9(center, width, renderer, i, alpha=0):
+def generate9(center, width, renderer, alpha=0):
         for y in range(int(-rect.bottom/2), int(rect.bottom/2)):
             x1=width*math.cos(y*.01) - y*math.sin(y*.01);
             y1=width*math.sin(y*.01) + y*math.cos(y*.01);
@@ -163,18 +183,22 @@ def run():
     
     window.show()
 
-    i=0.000001
+    #i=0.000001
 
 #    world.add_system(movement)
     target_off=0.0
     current_off = 0.0
     step=0.005
     running=True
-    gen_fns = [generate8, generate,
-        #generate2,
+    gen_fns = [
         generate4,
         generate5,
         generate6,
+        generate8,
+        generate, 
+        #generate2,
+        
+        
         #generate7,
         generate9]#,
         #generate_new]
@@ -182,12 +206,12 @@ def run():
     
     x_off =0
     x_off_target=random.random()
-    new_i=0
+    #new_i=0
     new_theta=0.001
 
     
 
-    i_2=0.000001
+    #i_2=0.000001
     while running:
         events = sdl2.ext.get_events()
         #for i in range(0, 300):
@@ -198,7 +222,7 @@ def run():
             if event.type==sdl2.SDL_QUIT or (event.type==sdl2.SDL_KEYDOWN and event.key.keysym.sym==sdl2.SDLK_ESCAPE):
                 running = False
                 break
-        sdl2.SDL_Delay(27)
+        #sdl2.SDL_Delay(27)
         #world.process()
                 
         renderer.clear()
@@ -222,16 +246,26 @@ def run():
         #print(str(current_off))
         
         
-        fn+=step
-        alpha = 1.0-current_off
+        fn+=step#*0.05
+        alpha = 0.5-math.fabs(fn-0.5)# - (random.random()*0.1)
+        alpha-=int(alpha)
+        #alpha*=0.5
+        #if(alpha<0):
+        #    alpha=0
+        #if(alpha>1):
+        #    alpha=1
+            
+        #alpha2 = alpha-0.75
+        #if(alpha2<0):
+        #    alpha2=0
         
         gen_fn = gen_fns[int(fn)%(len(gen_fns)-1)]
-        gen_fn_to = gen_fns[int(fn)%(len(gen_fns)-1)]
+        #gen_fn_to = gen_fns[int(fn)%(len(gen_fns)-1)]
         
         #print(gen_fn)
         #print(gen_fn_to)
-        gen_fn((rect.right/2+rect.right/8)+current_off*160, rect.right/10+150, renderer, i, alpha)
-        #gen_fn_to((rect.right/2+rect.right/8)+current_off*60, rect.right/10+150+(x_off*100)+(random.random()*0), renderer, i, 1.0-alpha)
+        gen_fn((rect.right/2+rect.right/8)+current_off*160, rect.right/10+150, renderer, alpha)
+        #gen_fn_to((rect.right/2+rect.right/8)+current_off*60, rect.right/10+150+(x_off*100)+(random.random()*0), renderer, alpha*0.5)
         
         
         if txtr==1:

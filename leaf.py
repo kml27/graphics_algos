@@ -1,24 +1,25 @@
 from __future__ import division
-import os, sys, math
+import os, sys, math, random
 import interpolate, rotation, translation
 os.environ["PYSDL2_DLL_PATH"]="."
 
 import sdl2, sdl2.ext
 
 window_size = (800, 600)
-clear_color = 0x00000000
+clear_color = 0xFF0000A0
 
 draw_color = 0x40A0A020
 
-dim_ratio = 0.75
+dimension_ratio = 0.75
 
-height = window_size[1]*0.75
-width = height*dim_ratio
+height = window_size[1]*0.25
+width = height*dimension_ratio
 
-subdivision_factor = 0.25
-
+subdivision_factor = 0.5
 
 growth_rate = 0.01
+
+branches= 6
 
 #class simple_hash(Dict):
 #    def __getitem():
@@ -130,15 +131,19 @@ def branch(start_pos, leaf_development_factor, subdivision_factor, branches, gro
     parent_length = growth_direction_vector[0]
     initial_angle = growth_direction_vector[1]
     
+    #print(parent_length)
+    
+    if parent_length*subdivision_factor < 2:#growth_rate:
+        #print('pruning small branches')
+        return
+    
     number_subdivisions = int(1/subdivision_factor)
     #print(number_subdivisions)
     
     create_branch = False
     #for i in range(0, number_subdivisions):
     #    if math.fabs(leaf_development_factor - i*subdivision_factor) < growth_rate:
-            
     #        create_branch = True
-    #raw_input()
     
     if leaf_development_factor >= subdivision_factor:
             create_branch = True
@@ -150,33 +155,49 @@ def branch(start_pos, leaf_development_factor, subdivision_factor, branches, gro
         #print(angle_of_rotation_per_branch)
                 
         
+        
         for branch in range(int(-branches/2), (int(branches/2)+1)):
-            if branch != 0:
-                new_branch = parent_node.grow(parent_node, branch)
-                angle_of_rotation = (branch*angle_of_rotation_per_branch)+initial_angle
-                #print(angle_of_rotation)
-                growth_direction_vector = (height*subdivision_factor, angle_of_rotation)
-                #growth_direction_vector = (parent_length*subdivision_factor, angle_of_rotation)
+            
+            new_branch = parent_node.grow(parent_node, branch)
+            angle_of_rotation = (branch*angle_of_rotation_per_branch)+initial_angle
+            growth_direction_vector = (parent_length*subdivision_factor, angle_of_rotation)
                 
-                grow_leaf(renderer, start_pos, growth_direction_vector, new_branch, branches, subdivision_factor, color)
-                #envelope should control growth rate
-                new_branch.root_value += 0.001
+            grow_leaf(renderer, start_pos, growth_direction_vector, new_branch, branches, subdivision_factor, color)
+            #envelope should control growth rate
+            new_branch.root_value += 0.01
             
         
     #else:
     #    for branch in range(int(-branches/2), (int(branches/2)+1)):
     #    if branch!=0:
     #        grow_leaf(renderer, start_pos, growth_direction_vector, new_branch, branches, subdivision_factor, color)
-        
+
 def grow_leaf(renderer, start_pos, growth_direction_vector, parent_node, branches, subdivision_factor, color):
     
     leaf_development_factor = parent_node.root_value
     #print(leaf_development_factor)
     #growth direction vector (magnitude, rotation)
-    if growth_direction_vector[0] == 0 or leaf_development_factor >= 1:
+    if growth_direction_vector[0] < growth_rate:#== 0:
         return
     
-    rotated_point = translation.translate(start_pos, rotation.rotate((growth_direction_vector[0], 0), growth_direction_vector[1]))
+    if leaf_development_factor >= 1:
+        #print('saturating leaf development')
+        leaf_development_factor = 1
+    
+    wind_step = 0.0001
+    
+    if math.fabs(grow_leaf.wind_target-grow_leaf.toward_wind) < wind_step:
+        grow_leaf.wind_target = (random.random()*math.pi/8)-math.pi/16
+        #print(grow_leaf.wind_target)
+    
+    if grow_leaf.toward_wind < grow_leaf.wind_target:
+        grow_leaf.toward_wind += wind_step
+    elif grow_leaf.toward_wind > grow_leaf.wind_target:
+        grow_leaf.toward_wind -= wind_step
+    
+    #print(grow_leaf.toward_wind)
+       
+    rotated_point = translation.translate(start_pos, rotation.rotate((growth_direction_vector[0], 0), growth_direction_vector[1]+grow_leaf.toward_wind))
     
     center_line = (int(start_pos[0]), int(start_pos[1]), int(rotated_point[0]), int(rotated_point[1]))
         
@@ -184,8 +205,18 @@ def grow_leaf(renderer, start_pos, growth_direction_vector, parent_node, branche
 
     #renderer.draw_line(center_line, 0xFFFF0000)
     interpolator = interpolate.linear_interpolate
-    developed_line = interpolator(center_line, leaf_development_factor)
     
+    
+    
+    number_subdivisions = int(1/subdivision_factor)
+    
+    #for i in range(1, number_subdivisions):
+    #    if (i*subdivision_factor - leaf_development_factor) < growth_rate:
+    #        developed_line = interpolator(center_line, i*subdivision_factor)
+    #        branch((developed_line[2], developed_line[3]), leaf_development_factor, subdivision_factor, branches, growth_direction_vector, renderer, parent_node, color- 0x102000)
+    
+    
+    developed_line = interpolator(center_line, leaf_development_factor)
     
     renderer.draw_line(developed_line, color)
     #draw_color = color
@@ -201,7 +232,8 @@ def grow_leaf(renderer, start_pos, growth_direction_vector, parent_node, branche
     #    color = 0xFFFF0000
     #create branches
     branch((developed_line[2], developed_line[3]), leaf_development_factor, subdivision_factor, branches, growth_direction_vector, renderer, parent_node, color- 0x102000)
-    
+grow_leaf.wind_target=0
+grow_leaf.toward_wind=0
     
     
     
@@ -232,11 +264,11 @@ def run():
     start_pos = (center, lower_third_line + height/3)
     
     #number of multifurcations
-    branches= 6
+    
     
     mb_tree = multibranch_tree()
     
-    
+        
     
     #add random deviations to repartition the radial sections more organically
     
@@ -245,6 +277,8 @@ def run():
     
     t=0
     
+    for y in range(int(lower_third_line), window_size[1]):
+        renderer.draw_line((0,y,window_size[0],y), 0xA0A0A0A0)
     
     running=True
     while(running):
@@ -260,6 +294,12 @@ def run():
         
         growth_direction_vector = (height, math.pi/2)
         
+        
+        renderer.clear(clear_color)
+        #for y in range(int(lower_third_line), window_size[1]):
+        #    pass
+            #renderer.draw_line((0,y,window_size[0],y), 0xA0A0A0A0)
+    
         grow_leaf(renderer, start_pos, growth_direction_vector, mb_tree, branches, subdivision_factor, draw_color)
         #sdl2.SDL_Delay(200)
         renderer.present()
