@@ -234,10 +234,11 @@ def run():
         #gen_fn_to((rect.right/2+rect.right/8)+current_off*60, rect.right/10+150+(x_off*100)+(random.random()*0), renderer, i, 1.0-alpha)
         
         
-        renderer.present()
-        
+        if txtr==1:
+            renderer.present()
+        else:
         #refresh only needed for sw/surface
-        window.refresh()
+            window.refresh()
     return 0
 
 if __name__ == "__main__":
