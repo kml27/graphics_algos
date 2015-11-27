@@ -191,11 +191,11 @@ def run():
     step=0.005
     running=True
     gen_fns = [
+        generate,
         generate4,
         generate5,
         generate6,
         generate8,
-        generate, 
         #generate2,
         
         
@@ -248,10 +248,18 @@ def run():
         
         fn+=step#*0.05
         alpha = 0.5-math.fabs(fn-0.5)# - (random.random()*0.1)
-        alpha-=int(alpha)
+        
+        #if alpha>1:
+        alpha -= int(alpha)
+        
+        alpha = math.fabs(alpha%1)
+        
+        #alpha *=0.5
+        
+        print(alpha)
         #alpha*=0.5
-        #if(alpha<0):
-        #    alpha=0
+        #if alpha < 0.01:
+        #    alpha = 0
         #if(alpha>1):
         #    alpha=1
             
