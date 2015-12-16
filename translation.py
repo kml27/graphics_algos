@@ -1,9 +1,11 @@
 from __future__ import division
+import collections
 
 def translate(points, offsets, results_interleaved=True):
     #print points
     #print offsets
-    try:
+    if len(points)>2:
+    #try:
         translated = []
         #[point in points in offsets]
         #print len(points)
@@ -19,11 +21,12 @@ def translate(points, offsets, results_interleaved=True):
             
             #print str(translated)
     
-    except Exception as e:
-        print e.message
+    #except Exception as e:
+    #    pass
+        #print e.message
     
     #print "translated" + str(translated)
-    if len(translated)>0:
+    #    if len(translated)>0:
         return translated
     else:
         return (int(points[0]+offsets[0]), int(points[1]+offsets[1]))
