@@ -20,8 +20,9 @@ flame_area=((width*2)/3, height)
 #heat
 rate =  1
 
-old_triangle_kernel = [    0, 0.25,    0,
-                        0.25, 0.25, 0.25
+old_triangle_kernel = [ 0.25,   0.25, 0.25,
+                        0,      0.25,    0
+                        
                        ]
 
 #starts blur at top + kernel_height, left + kernel_width
@@ -104,8 +105,8 @@ def run():
         blur(fire_mem, flame_area[0], flame_area[1], 0, -1, 3, 2, old_triangle_kernel)
         
         sprite_render_system.render(fire_sprite, flame_offset[0], flame_offset[1])
-        n+=1
-        print(n)
+        #n+=1
+        #print(n)
         #renderer.present()
         
     
