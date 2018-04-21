@@ -4,7 +4,7 @@ Mercurial (Hg) Repo
 
 pip install mercurial
 
-hg clone <this projects repo url>
+hg clone <this projects repo url>  
 
 ### What is this repository for? ###
 
@@ -17,12 +17,12 @@ Various graphics algorithms implementations in python using pySDL2
 ### How do I get set up? ###  
 
 
-* Summary of set up
+* Summary of set up  
 pip install pysdl2  
 
 
-* Configuration
-* Dependencies
+* Configuration  
+* Dependencies  
 pysdl2  
 sdl2.dll  
 Tcl/tkinter  
